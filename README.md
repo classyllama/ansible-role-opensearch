@@ -6,7 +6,7 @@ OpenSearch is a community-driven, open source search and analytics suite derived
 
 ## Requirements
 
-None.
+This role requires `openssl` installed on host for SSL certificates generation.
 
 ## Role Variables
 

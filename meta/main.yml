@@ -10,6 +10,11 @@ galaxy_info:
   platforms:
     - name: CentOS
       versions:
-       - all
-#  galaxy_tags: ['opensearch','elasticsearch','search']
+        - all
+    - name: RHEL
+      versions:
+        - all
+    - name: RockyLinux
+      versions:
+        - all
 dependencies: []

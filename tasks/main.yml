@@ -8,14 +8,14 @@
     mode: "0644"
   register: download
 
-- name: OpenSearch Install | Create opensearch user
+- name: OpenSearch Install | Create opensearch user "{{ os_user }}"
   ansible.builtin.user:
     name: "{{ os_user }}"
     state: present
     shell: /bin/bash
   when: download.changed
 
-- name: OpenSearch Install | Create home directory
+- name: OpenSearch Install | Create home directory "{{ os_home }}"
   ansible.builtin.file:
     path: "{{ os_home }}"
     state: directory
@@ -24,9 +24,14 @@
     mode: "0755"
   when: download.changed
 
+- name: Security Plugin configuration | Check for existing SSL certificates
+  stat:
+    path: "{{ os_config_dir }}"
+  register: opensearch_stat
+
 - name: OpenSearch Install | Extract the tar file
   ansible.builtin.command: chdir=/tmp/ tar -xvzf opensearch.tar.gz -C "{{ os_home }}" --strip-components=1
-  when: download.changed
+  when: download.changed and not opensearch_stat.stat.exists
 
 - name: OpenSearch Install | Copy Configuration File
   ansible.builtin.template:
@@ -54,7 +59,6 @@
      group: "{{ os_user }}"
      state: link
   ignore_errors: "{{ ansible_check_mode }}"
-  when: download.changed
 
 - name: OpenSearch Install | Create systemd service
   ansible.builtin.template:
@@ -64,15 +68,53 @@
     owner: "root"
     group: "root"
 
-- name: include security plugin for opensearch
-  ansible.builtin.include: security.yml
-  when: not os_disable_security
+- name: Security Plugin configuration | Copy the opensearch security internal users template
+  ansible.builtin.template:
+    src: internal_users.yml.j2
+    dest: "{{ os_sec_plugin_conf_path }}/internal_users.yml"
+    mode: 0644
+  run_once: true
+
+- name: Security Plugin configuration | Set the user password
+  ansible.builtin.shell: >
+    sed -i '/hash: / s,{{ os_admin_password }},'$(bash {{ os_sec_plugin_tools_path }}/hash.sh -p {{ os_admin_password }} | tail -1)','
+    {{ os_sec_plugin_conf_path }}/internal_users.yml
+  environment:
+    JAVA_HOME: "{{ os_home }}/jdk"
+  run_once: true
+  notify: restart opensearch
+
+- name: Security Plugin configuration | Check for existing SSL certificates
+  stat:
+    path: "{{ os_config_dir }}/transport.pem"
+  register: opensearch_ssl_stat
+
+- name: Security Plugin configuration | SSL generation
+  ansible.builtin.shell: |
+    openssl genrsa -out root-ca-key.pem 2048
+    openssl req -new -x509 -sha256 -key root-ca-key.pem -out root-ca.pem -days 3650 -subj "/C=US/ST=OpenSearch/L=OpenSearchm /O=.../OU=.../CN=.../emailAddress=..."
+    openssl genrsa -out transport-key-temp.pem 2048
+    openssl pkcs8 -inform PEM -outform PEM -in transport-key-temp.pem -topk8 -nocrypt -v1 PBE-SHA1-3DES -out transport-key.pem
+    openssl req -new -key transport-key.pem -out transport.csr -subj "/C=US/ST=OpenSearch/L=OpenSearchm /O=.../OU=.../CN=.../emailAddress=..."
+    openssl x509 -req -in transport.csr -CA root-ca.pem -CAkey root-ca-key.pem -CAcreateserial -sha256 -out transport.pem -days 3650
+  args:
+    chdir: "{{ os_config_dir }}"
+  become: true
+  become_user: "{{ os_user }}"
+  run_once: true
+  when: not opensearch_ssl_stat.stat.exists
 
 - name: OpenSearch Check | Make sure opensearch is started
   ansible.builtin.service:
     name: opensearch
     state: started
     enabled: yes
+
+- name: OpenSearch Check | Wait for open port
+  ansible.builtin.wait_for:
+    host: "{{ os_api_ip }}"
+    port: "{{ os_api_port }}"
+    delay: 10
 
 - name: OpenSearch Check | Get all the installed ES plugins
   ansible.builtin.command: "{{ os_plugin_bin_path }} list"

@@ -6,9 +6,11 @@ os_config_dir_link: /etc/opensearch
 os_plugin_bin_path: /usr/share/opensearch/bin/opensearch-plugin
 os_sec_plugin_conf_path: /usr/share/opensearch/plugins/opensearch-security/securityconfig
 os_sec_plugin_tools_path: /usr/share/opensearch/plugins/opensearch-security/tools
+os_systemctl_path: /etc/systemd/system
+
 os_api_ip: "127.0.0.1"
 os_api_port: 9200
-os_systemctl_path: /etc/systemd/system
+
 ## Common opensearch configuration parameters ##
 os_cluster_name: opensearch-cluster
 # opensearch download
