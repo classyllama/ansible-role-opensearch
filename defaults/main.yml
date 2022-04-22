@@ -22,3 +22,4 @@ os_xmx_value: 2g
 os_user: opensearch
 os_admin_user: opensearch
 os_admin_password: changeme
+os_disable_security: false

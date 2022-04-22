@@ -1,5 +1,6 @@
 ---
 galaxy_info:
+  role_name: opensearch
   author: ClassyLlama
   namespace: classyllama
   description: OpenSearch Ansible Role
