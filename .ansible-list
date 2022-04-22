@@ -1,0 +1,8 @@
+skip_list:  # or 'skip_list' to silence them completely
+  - command-instead-of-module  # Using command rather than module.
+  - experimental  # all rules tagged as experimental
+  - fqcn-builtins  # Use FQCN for builtin actions.
+  - no-changed-when  # Commands should not change things if nothing needs doing.
+  - no-handler  # Tasks that run when changed should likely be handlers.
+  - risky-shell-pipe  # Shells that use pipes should set the pipefail option.
+  - var-spacing  # Variables should have spaces before and after: {{ var_name }}.

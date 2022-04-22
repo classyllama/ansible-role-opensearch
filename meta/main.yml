@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  author: ClassyLlama
+  namespace: classyllama
+  description: OpenSearch Ansible Role
+  company: ClassyLlama
+  license: MIT
+  min_ansible_version: 2.1
+  platforms:
+    - name: CentOS
+      versions:
+       - all
+#  galaxy_tags: ['opensearch','elasticsearch','search']
+dependencies: []

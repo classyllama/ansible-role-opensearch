@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include classyllama.opensearch"
+      include_role:
+        name: "classyllama.opensearch"

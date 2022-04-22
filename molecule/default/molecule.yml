@@ -1,0 +1,23 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: centos8
+    image: centos/systemd:latest
+    pre_build_image: true
+#  - name: centos7
+#    image: centos:7
+#    pre_build_image: true
+#  - name: rocky8
+#    image: rockylinux
+#    pre_build_image: true
+provisioner:
+  name: ansible
+verifier:
+  name: testinfra
+lint: |
+  set -e
+#  yamllint .
+#  ansible-lint
