@@ -2,7 +2,7 @@
 ## Here we are going to use self-signed certificates for Transport (Node-Node communication) & REST API layer
 ## Using searchguard offline TLS tool to create node & root certificates
 - name: Security Plugin configuration | Create local temporary directory for certificates generation
-  ansible.builtin.local_action:
+  local_action:
     module: file
     path: /tmp/opensearch-nodecerts
     state: directory
@@ -10,7 +10,7 @@
   register: configuration
 
 - name: Security Plugin configuration | Download certificates generation tool
-  ansible.builtin.local_action:
+  local_action:
     module: get_url
     url: https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-tlstool/1.5/search-guard-tlstool-1.5.tar.gz
     dest: /tmp/opensearch-nodecerts/search-guard-tlstool.tar.gz
@@ -18,12 +18,12 @@
   when: configuration.changed
 
 - name: Security Plugin configuration | Extract the certificates generation tool
-  ansible.builtin.local_action: command chdir=/tmp/opensearch-nodecerts tar -xvf search-guard-tlstool.tar.gz
+  local_action: command chdir=/tmp/opensearch-nodecerts tar -xvf search-guard-tlstool.tar.gz
   run_once: true
   when: configuration.changed
 
 - name: Security Plugin configuration | Make the executable file
-  ansible.builtin.local_action:
+  local_action:
     module: file
     dest: /tmp/opensearch-nodecerts/tools/sgtlstool.sh
     mode: a+x
@@ -31,7 +31,7 @@
   when: configuration.changed
 
 - name: Security Plugin configuration | Prepare the certificates generation template file
-  ansible.builtin.local_action:
+  local_action:
     module: template
     src: tlsconfig.yml.j2
     dest: /tmp/opensearch-nodecerts/config/tlsconfig.yml
@@ -39,7 +39,7 @@
   when: configuration.changed
 
 - name: Security Plugin configuration | Generate the node & admin certificates in local
-  ansible.builtin.local_action:
+  local_action:
     module: command /tmp/opensearch-nodecerts/tools/sgtlstool.sh -c /tmp/opensearch-nodecerts/config/tlsconfig.yml -ca -crt -t /tmp/opensearch-nodecerts/config/
   run_once: true
   when: configuration.changed
@@ -91,7 +91,7 @@
 
 - name: Security Plugin configuration | Set the folder permission
   ansible.builtin.file:
-    dest: "{{ os_conf_dir }}"
+    dest: "{{ os_config_dir }}"
     owner: "{{ os_user }}"
     group: "{{ os_user }}"
     mode: 0700
@@ -115,17 +115,8 @@
   when: configuration.changed
 
 - name: Security Plugin configuration | Set the Admin user password
-  shell: >
-    sed -i '/hash: / s,{{ admin_password }},'$(bash {{ os_sec_plugin_tools_path }}/hash.sh -p {{ admin_password }} | tail -1)','
-    {{ os_sec_plugin_conf_path }}/internal_users.yml
-  environment:
-    JAVA_HOME: "{{ os_home }}/jdk"
-  run_once: true
-  when: configuration.changed
-
-- name: Security Plugin configuration | Set the kibanaserver user pasword
-  shell: >
-    sed -i '/hash: / s,{{ kibanaserver_password }},'$(bash {{ os_sec_plugin_tools_path }}/hash.sh -p {{ kibanaserver_password }} | tail -1)','
+  ansible.builtin.shell: >
+    sed -i '/hash: / s,{{ os_admin_password }},'$(bash {{ os_sec_plugin_tools_path }}/hash.sh -p {{ os_admin_password }} | tail -1)','
     {{ os_sec_plugin_conf_path }}/internal_users.yml
   environment:
     JAVA_HOME: "{{ os_home }}/jdk"
@@ -133,7 +124,7 @@
   when: configuration.changed
 
 - name: Security Plugin configuration | Initialize the opensearch security index in opensearch
-  shell: >
+  ansible.builtin.shell: >
     bash {{ os_sec_plugin_tools_path }}/securityadmin.sh
     -cacert {{ os_conf_dir }}/root-ca.pem
     -cert {{ os_conf_dir }}/admin.pem
