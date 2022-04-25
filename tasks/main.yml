@@ -25,7 +25,7 @@
   when: download.changed
 
 - name: Security Plugin configuration | Check for existing SSL certificates
-  stat:
+  ansible.builtin.stat:
     path: "{{ os_config_dir }}"
   register: opensearch_stat
 
@@ -85,7 +85,7 @@
   notify: restart opensearch
 
 - name: Security Plugin configuration | Check for existing SSL certificates
-  stat:
+  ansible.builtin.stat:
     path: "{{ os_config_dir }}/transport.pem"
   register: opensearch_ssl_stat
 
