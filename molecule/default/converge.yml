@@ -5,3 +5,6 @@
     - name: "Include classyllama.opensearch"
       include_role:
         name: "classyllama.opensearch"
+  vars:
+    - os_xmx: 1g
+    - os_xms: 1g

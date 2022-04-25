@@ -1,0 +1,12 @@
+- name: Prepare
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: "Prep hosts for ansible with DNF"
+      ansible.builtin.command: dnf --assumeyes install openssl
+      when: ansible_distribution_major_version == "8"
+
+    - name: "Prep hosts for ansible with YUM"
+      ansible.builtin.command: yum install -y openssl
+      when: ansible_distribution_major_version == "7"
