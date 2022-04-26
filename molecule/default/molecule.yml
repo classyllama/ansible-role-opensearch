@@ -4,14 +4,14 @@ dependency:
 driver:
   name: docker
 platforms:
-  - name: centos8stream
-    image: quay.io/centos/centos:stream8
-    command: /sbin/init
-    tmpfs:
-      - /run
-      - /tmp
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+#  - name: centos8stream
+#    image: quay.io/centos/centos:stream8
+#    command: /sbin/init
+#    tmpfs:
+#      - /run
+#      - /tmp
+#    volumes:
+#      - /sys/fs/cgroup:/sys/fs/cgroup:ro
   - name: centos7
     image: quay.io/centos/centos:7
     command: /sbin/init
@@ -20,14 +20,14 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-  - name: rockylinux
-    image: robertdebock/rockylinux
-    command: /sbin/init
-    tmpfs:
-      - /run
-      - /tmp
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+#  - name: rockylinux
+#    image: robertdebock/rockylinux
+#    command: /sbin/init
+#    tmpfs:
+#      - /run
+#      - /tmp
+#    volumes:
+#      - /sys/fs/cgroup:/sys/fs/cgroup:ro
 provisioner:
   name: ansible
   options:
