@@ -65,7 +65,7 @@
     mode: "0644"
     owner: "root"
     group: "root"
-  notify: reload system configuration
+  notify: reload systemd configuration
 
 - name: Security Plugin configuration | Copy the opensearch security internal users template
   ansible.builtin.template:
