@@ -1,19 +1,16 @@
 ---
 # tasks file for opensearch
 
-- name: OpenSearch Install | Download opensearch {{ os_version }}
-  ansible.builtin.get_url:
-    url: "{{ os_download_url }}/{{ os_version }}/opensearch-{{ os_version }}-linux-x64.tar.gz"
-    dest: "/tmp/opensearch.tar.gz"
-    mode: "0644"
-  register: download
+- name: OpenSearch Install | Check for existing configuration
+  ansible.builtin.stat:
+    path: "{{ os_config_dir }}"
+  register: opensearch_config
 
 - name: OpenSearch Install | Create opensearch user "{{ os_user }}"
   ansible.builtin.user:
     name: "{{ os_user }}"
     state: present
     shell: /bin/bash
-  when: download.changed
 
 - name: OpenSearch Install | Create home directory "{{ os_home }}"
   ansible.builtin.file:
@@ -22,16 +19,17 @@
     owner: "{{ os_user }}"
     group: "{{ os_user }}"
     mode: "0755"
-  when: download.changed
 
-- name: Security Plugin configuration | Check for existing SSL certificates
-  ansible.builtin.stat:
-    path: "{{ os_config_dir }}"
-  register: opensearch_stat
+- name: OpenSearch Install | Download opensearch {{ os_version }}
+  ansible.builtin.get_url:
+    url: "{{ os_download_url }}/{{ os_version }}/opensearch-{{ os_version }}-linux-x64.tar.gz"
+    dest: "/tmp/opensearch.tar.gz"
+    mode: "0644"
+  when: not opensearch_config.stat.exists
 
 - name: OpenSearch Install | Extract the tar file
   ansible.builtin.command: chdir=/tmp/ tar -xvzf opensearch.tar.gz -C "{{ os_home }}" --strip-components=1
-  when: download.changed and not opensearch_stat.stat.exists
+  when: not opensearch_config.stat.exists
 
 - name: OpenSearch Install | Copy Configuration File
   ansible.builtin.template:
@@ -67,6 +65,7 @@
     mode: "0644"
     owner: "root"
     group: "root"
+  notify: reload system configuration
 
 - name: Security Plugin configuration | Copy the opensearch security internal users template
   ansible.builtin.template:
